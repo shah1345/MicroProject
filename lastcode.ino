@@ -16,13 +16,32 @@
 #include <Wire.h>
 #endif
 
-#define BUTTON_PIN  2
-Button2 button;
+//RF 5 18 19 22
+//Button
+#define Buzzer  16  //done
+#define B_High  2 //done
+#define B_Mid  17 //done
+#define B_Low  4  //done
+#define B_Start  15      //16 done
+
+//Sensor
+#define Temprature  27
+#define IRSensor  36
+
+//Pump And AC
+#define Pump1  39 ////done
+#define Pump2  34
+#define Pump3  35
+#define Relay  13
 
 
+Button2 buttonH, buttonM, buttonL, buttonS;
 
-#define SS_PIN  5 // SCK-GPIO 18, MOSI-GPIO 17, MISO-GPIO 16, Vcc-3.3v, GND -GND,
-#define RST_PIN 22
+
+String Id[]={"211111030","19510466146","24120420428"};
+
+#define SS_PIN  5 // SCK-GPIO 18, MOSI-GPIO 19, MISO-GPIO 23, Vcc-3.3v, GND -GND,
+#define RST_PIN 17
 MFRC522 rfid(SS_PIN, RST_PIN); // Create MFRC522 instance.
 MFRC522::MIFARE_Key key; 
 // Init array that will store new NUID 
@@ -257,6 +276,30 @@ void setup(void) {
 
     Serial.begin(115200); 
 
+
+  buttonH.begin(B_High);
+  buttonH.setClickHandler(click);
+
+  buttonM.begin(B_Mid);
+  buttonM.setClickHandler(click);
+
+  buttonL.begin(B_Low);
+  buttonL.setClickHandler(click);
+
+  // buttonS.begin(B_Start);
+  // buttonS.setClickHandler(click);
+
+  buttonS.begin(B_Start);
+  buttonS.setClickHandler(handler);
+  buttonS.setLongClickHandler(handler);
+  buttonS.setDoubleClickHandler(handler);
+  buttonS.setTripleClickHandler(handler);
+
+
+
+
+
+
  while (!Serial);      // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
   SPI.begin();          // Init SPI bus
   rfid.PCD_Init();   // Init MFRC522 module
@@ -285,11 +328,7 @@ void setup(void) {
   u8g2.setFont(u8g2_font_helvB10_tf); 
   u8g2.setColorIndex(1); 
 
-    button.begin(button_boot.PIN);
-  button.setClickHandler(handler);
-  button.setLongClickHandler(handler);
-  button.setDoubleClickHandler(handler);
-  button.setTripleClickHandler(handler);
+
 
 
 }
@@ -347,11 +386,16 @@ void readHumidity()
 
 void loop() {  
  
-  //   button.loop();
+    //button.loop();
   // u8g2.firstPage();
   // do {   
   //   draw();
   // } while( u8g2.nextPage() );
+
+  buttonH.loop();
+  buttonM.loop();
+  buttonL.loop();
+  buttonS.loop();
 
 
 
@@ -397,13 +441,13 @@ void loop() {
       nuidPICC[i] = rfid.uid.uidByte[i];
     }
    
-    Serial.println(F("The NUID tag is:"));
-    Serial.print(F("In hex: "));
-    printHex(rfid.uid.uidByte, rfid.uid.size);
-    Serial.println();
-    Serial.print(F("In dec: "));
-    printDec(rfid.uid.uidByte, rfid.uid.size);
-    Serial.println();
+    // Serial.println(F("The NUID tag is:"));
+    // Serial.print(F("In hex: "));
+    // printHex(rfid.uid.uidByte, rfid.uid.size);
+    // Serial.println();
+    // Serial.print(F("In dec: "));
+    // printDec(rfid.uid.uidByte, rfid.uid.size);
+    // Serial.println();
   }
   else Serial.println(F("Card read previously."));
 
@@ -427,6 +471,20 @@ void loop() {
   }
   //---------------------------------------------
   Serial.println(CardID);
+
+
+
+
+  if(Id[0] == CardID){
+
+      Serial.println("Teacher");
+  } else if(Id[1] == CardID){
+
+Serial.println("Student");
+  } else if(Id[2] == CardID){
+
+Serial.println("Admin");
+  } else Serial.println("No Record");
  // SendCardID(CardID);
 
 
@@ -462,7 +520,21 @@ void printDec(byte *buffer, byte bufferSize) {
 
 
 
+void DisplayHandeler(String TextU,String TextD,String DextU,String DextD){
 
+// Good Morning Teacher
+  u8g2.drawStr( 15, 13, "Good Morning");   
+  u8g2.drawStr( 35, 28, "100");   
+  u8g2.drawUTF8(70, 28, DEGREE_SYMBOL);
+  u8g2.drawUTF8(76, 28, "C");
+
+  u8g2.drawStr(27,46, "Tea Level");         
+  u8g2.drawStr( 37, 61, "50"); 
+  u8g2.drawStr(75,61, "%"); 
+
+
+
+}
 
 
 void handler(Button2& btn) {
@@ -519,3 +591,22 @@ Serial.println("Mode 01");
   Serial.print(btn.getNumberOfClicks());
   Serial.println(")");
 }
+
+
+
+
+
+
+void click(Button2& btn) {
+    if (btn == buttonH) {
+      Serial.println("High clicked");
+    } else if (btn == buttonM) {
+      Serial.println("Mediam clicked");
+    } else if (btn == buttonL) {
+      Serial.println("Low clicked");
+    } else if (btn == buttonS) {
+      Serial.println("Start clicked");
+    }
+}
+
+
